@@ -7,6 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 
 COPY ./requirements.txt /tmp/requirements.txt
 COPY ./requirements.dev.txt /tmp/requirements.dev.txt
+COPY ./entrypoint.sh /entrypoint.sh
 COPY . .
 
 WORKDIR /backend
@@ -32,9 +33,12 @@ RUN python -m venv /py && \
     mkdir -p /vol/web/media && \
     mkdir -p /vol/web/static && \
     chown -R django-user:django-user /vol && \
-    chmod -R 755 /vol
-
+    chmod -R 755 /vol && \
+    sed -i 's/\r$//g' /entrypoint.sh && \
+    chmod +x /entrypoint.sh
 
 ENV PATH="/py/bin:$PATH"
 
 USER django-user
+
+ENTRYPOINT ["/entrypoint.sh"]
