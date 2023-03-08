@@ -1,0 +1,56 @@
+version: "3"
+
+services:
+  backend:
+    container_name: backend
+    build:
+      context: ./backend
+    stdin_open: true
+    tty: true
+    working_dir: /backend
+    ports:
+      - "8000:8000"
+    restart: always
+    volumes:
+      - ./backend:/backend
+      - dev-static-data:/vol/web
+    env_file:
+      - .env.dev
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    depends_on:
+      - db
+
+  frontend:
+    container_name: frontend
+    build: ./frontend
+    stdin_open: true
+    tty: true
+    working_dir: /frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/frontend
+    env_file:
+      - .env.dev
+    command: >
+      sh -c "npm install -g npm@latest && npm install && npm run dev"
+    depends_on:
+      - backend
+      - db
+
+  db:
+    container_name: db
+    image: postgres:15-alpine
+    restart: always
+    volumes:
+      - dev-db-data:/var/lib/postgresql/data
+    env_file:
+      - .env.dev
+
+volumes:
+  dev-db-data:
+  dev-static-data:
+
+    #python manage.py wait_for_db &&
